@@ -1,0 +1,19 @@
+---
+title: "Website Upload"
+author: "Nathan Haywood"
+date: "8/31/2020"
+output: html_document
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## This page will have access to all of the lab reports for this class.
+
+*[Lab1](Lab1_NCH.html)
+
+*[Lab2](Lab2_NCH.html)
+
+# REFERENCES
