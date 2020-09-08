@@ -3,7 +3,7 @@ title: "Lab3B"
 author: "Nathan Haywood"
 date: "9/8/2020"
 output: html_document
-bibliography: bibliography.bib
+bibliography: bibliography.bibtex
 ---
 
 ```{r setup, include=FALSE}
@@ -269,5 +269,7 @@ surveys_complete <- surveys_complete %>%
 ```{r}
 write_csv(surveys_complete, path = "surveys_complete.csv")
 ```
+
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
 
 # REFERENCES

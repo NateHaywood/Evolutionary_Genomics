@@ -3,7 +3,7 @@ title: "Lab3A"
 author: "Nathan Haywood"
 date: "9/7/2020"
 output: html_document
-biolography: bibliography.bib
+bibliography: bibliography.bibtex
 ---
 
 ```{r setup, include=FALSE}
@@ -188,4 +188,6 @@ missing_dates <- surveys[is.na(surveys$date), c("year", "month", "day")]
 head(missing_dates)
 ```
 
-## REFERENCES
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
+
+# REFERENCES

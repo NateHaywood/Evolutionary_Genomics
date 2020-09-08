@@ -3,7 +3,7 @@ title: "Lab2"
 author: "Nathan Haywood"
 date: "8/31/2020"
 output: html_document
-bibliography: bibliography.bib
+bibliography: bibliography.bibtex
 ---
 
 ```{r setup, include=FALSE}
@@ -53,5 +53,7 @@ nucleotides
 
 sort(nucleotides)
 ```
+
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
 
 # REFERENCES
