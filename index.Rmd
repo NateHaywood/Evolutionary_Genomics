@@ -3,7 +3,7 @@ title: "Website Upload"
 author: "Nathan Haywood"
 date: "8/31/2020"
 output: html_document
-bibliography: references.bib
+bibliography: bibliography.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -15,5 +15,11 @@ knitr::opts_chunk$set(echo = TRUE)
 *[Lab1](Lab1_NCH.html)
 
 *[Lab2](Lab2_NCH.html)
+
+*[Lab3A](Lab3A_NCH.html)
+*[Lab3B](Lab3B_NCH.html)
+
+
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
 
 # REFERENCES

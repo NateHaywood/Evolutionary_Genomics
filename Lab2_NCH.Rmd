@@ -3,7 +3,7 @@ title: "Lab2"
 author: "Nathan Haywood"
 date: "8/31/2020"
 output: html_document
-bibliography: references.bib
+bibliography: bibliography.bib
 ---
 
 ```{r setup, include=FALSE}
