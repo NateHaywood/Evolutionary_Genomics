@@ -1,0 +1,122 @@
+---
+title: "Lab4"
+author: "Nathan Haywood"
+date: "9/14/2020"
+output: html_document
+bibliography: bibliography.bibtex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, results = "hide"}
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(DT)
+```
+
+```{r, results = "hide"}
+data_03_11_20 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/03-11-2020.csv")) %>%
+  rename(Country_Region = "Country/Region", Province_State = "Province/State")
+
+data_09_16_20 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-16-2020.csv"))
+```
+
+```{r, results = "hide"}
+str(data_03_11_20)
+view(data_03_11_20)
+
+str(data_09_16_20)
+view(data_09_16_20)
+```
+
+```{r, results = "hide"}
+countryConfirmed_03_11 <- data_03_11_20 %>% group_by(Country_Region) %>% summarise(sum(Confirmed)) %>% rename(Confirmed = "sum(Confirmed)")
+
+countryConfirmed_09_16 <- data_09_16_20 %>% group_by(Country_Region) %>% summarise(sum(Confirmed)) %>% rename(Confirmed = "sum(Confirmed)")
+
+countryDeaths_03_11 <- data_03_11_20 %>% group_by(Country_Region) %>% summarise(sum(Deaths)) %>% rename(Deaths = "sum(Deaths)")
+
+countryDeaths_09_16 <- data_09_16_20 %>% group_by(Country_Region) %>% summarise(sum(Deaths)) %>% rename(Deaths = "sum(Deaths)")
+```
+
+```{r, results = "hide"}
+usConfirmed_03_11 <- data_03_11_20 %>% 
+  filter(Country_Region == "US") %>% 
+  group_by(Province_State) %>% 
+  summarise(sum(Confirmed)) %>%
+  rename(Confirmed = "sum(Confirmed)")
+
+
+usConfirmed_09_16 <- data_09_16_20 %>% 
+  filter(Country_Region == "US") %>% 
+  group_by(Province_State) %>% 
+  summarise(sum(Confirmed)) %>%
+  rename(Confirmed = "sum(Confirmed)")
+
+usDeaths_03_11 <- data_03_11_20 %>% 
+  filter(Country_Region == "US") %>% 
+  group_by(Province_State) %>% 
+  summarise(sum(Deaths)) %>%
+  rename(Deaths = "sum(Deaths)")
+
+usDeaths_09_16 <- data_09_16_20 %>% 
+  filter(Country_Region == "US") %>% 
+  group_by(Province_State) %>% 
+  summarise(sum(Deaths)) %>%
+  rename(Deaths = "sum(Deaths)")
+```
+
+```{r}
+mostCountryConfirmed_03_11 <- countryConfirmed_03_11 %>% arrange(desc(Confirmed)) %>% slice(1:10)
+
+mostCountryConfirmed_09_16 <- countryConfirmed_09_16 %>% arrange(desc(Confirmed)) %>% slice(1:10)
+
+mostCountryDeaths_03_11 <- countryDeaths_03_11 %>% arrange(desc(Deaths)) %>% slice(1:10)
+
+mostCountryDeaths_09_16 <- countryDeaths_09_16 %>% arrange(desc(Deaths)) %>% slice(1:10)
+
+mostUsConfirmed_03_11 <- usConfirmed_03_11 %>% arrange(desc(Confirmed)) %>% slice(1:10)
+
+mostUsConfirmed_09_16 <- usConfirmed_09_16 %>% arrange(desc(Confirmed)) %>% slice(1:10)
+
+mostUsDeaths_03_11 <- usDeaths_03_11 %>% arrange(desc(Deaths)) %>% slice(1:10)
+
+mostUsDeaths_09_16 <- usDeaths_09_16 %>% arrange(desc(Deaths)) %>% slice(1:10)
+```
+
+```{r}
+globalOldConfirmed <- ggplot(data = mostCountryConfirmed_03_11, aes(x = Country_Region, y = Confirmed)) + ggtitle("Countries with Most Confirmed Cases as of 03/11/20") + geom_point()
+
+globalNewConfimed <- ggplot(data = mostCountryConfirmed_09_16, aes(x = Country_Region, y = Confirmed)) + ggtitle("Countries with Most Confirmed Cases as of 09/16/20") + geom_point()
+
+globalOldDeath <- ggplot(data = mostCountryDeaths_03_11, aes(x = Country_Region, y = Deaths)) + ggtitle("Countries with Most Deaths as of 03/11/20") + geom_point()
+
+globalNewDeath <- ggplot(data = mostCountryDeaths_09_16, aes(x = Country_Region, y = Deaths)) + ggtitle("Countries with Most Deaths as of 09/16/20") + geom_point()
+
+usOldConfirmed <- ggplot(data = mostUsConfirmed_03_11, aes(x = Province_State, y = Confirmed)) + ggtitle("States with the Most Confirmed Cases as of 03/11/20") + geom_bar(stat = "identity")
+
+usNewConfirmed <- ggplot(data = mostUsConfirmed_09_16, aes(x = Province_State, y = Confirmed)) + ggtitle("States with the Most Confirmed Cases as of 09/16/20") + geom_bar(stat = "identity")
+
+usOldDeath <- ggplot(data = mostUsDeaths_03_11, aes(x = Province_State, y = Deaths)) + ggtitle("States with the Most Deaths as of 03/11/20") + geom_bar(stat = "identity")
+
+usNewDeath <- ggplot(data = mostUsDeaths_09_16, aes(x = Province_State, y = Deaths)) + ggtitle("States with the Most Deaths as of 09/16/20") + geom_bar(stat = "identity")
+```
+
+```{r}
+globalOldConfirmed
+globalOldDeath
+globalNewConfimed
+globalNewDeath
+
+usOldConfirmed
+usOldDeath
+usNewConfirmed
+usNewDeath
+```
+
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
+
+# REFERENCES
