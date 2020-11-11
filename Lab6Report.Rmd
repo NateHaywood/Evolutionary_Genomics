@@ -1,0 +1,62 @@
+---
+title: "Lab 6 Report"
+author: "Nathan Haywood"
+date: "9/30/2020"
+output: html_document
+bibliography: bibliography3.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## A Family Guide to the COVID Pandemic
+
+#### SARS-CoV-2 is the name of the virus that originated from Wuhan China and causes the COVID-19 disease. This disease is predominantly characterized by cough, shortness of breath, muscle aches, loss of taste or smell, sore throat, and congestion, however there are many other symptoms that people have reported. The virus was first seen around New Years (2020) in China but spread rapidly throughout the world. The first case in the United States was detected on January 20th. Since that point, approximately 7.5 million US citizens have been infected and 210 thousand US citizens have died (as of Octber 3rd). In the entire world, there have been 35.7 million cases and 1.05 million deaths. This means that the US accounts for approximately 1/5 of both the global case count and death count.
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(maps)
+library(mapdata)
+library(lubridate)
+library(viridis)
+library(wesanderson)
+library(plotly)
+library(DT)
+library(gganimate)
+library(transformr)
+library(RColorBrewer)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+tsGlobalConfirmedLong <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")) %>%
+  rename(Province_State = "Province/State", Country_Region = "Country/Region") %>%
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long), names_to = "Date", values_to = "Confirmed") 
+
+tsGlobalDeathsLong <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")) %>%
+  rename(Province_State = "Province/State", Country_Region = "Country/Region") %>%
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long), names_to = "Date", values_to = "Deaths")
+
+tsUSConfirmedLong <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")) %>%
+  select(-c("UID", "iso2", "iso3", "code3",  "FIPS", "Admin2", "Combined_Key")) %>%
+  pivot_longer(-c("Country_Region", "Lat", "Long_", "Province_State"), names_to = "Date", values_to = "Confirmed") %>%
+  filter(Province_State != "Recovered")
+
+tsUSDeathsLong <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")) %>%
+  select(-c("UID", "iso2", "iso3", "code3",  "FIPS", "Admin2", "Combined_Key")) %>%
+  pivot_longer(-c("Country_Region", "Lat", "Long_", "Province_State"), names_to = "Date", values_to = "Confirmed") %>%
+  filter(Province_State != "Recovered")
+```
+
+#### This graph shows the total world cases and deaths growth curve and the same curves for the US. Given the US population, the proportion 
+
+```{r, echo=FALSE}
+
+```
+
+
+
+
+
+

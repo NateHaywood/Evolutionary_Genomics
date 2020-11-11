@@ -1,0 +1,166 @@
+---
+title: "Lab 7 A"
+author: "Nathan Haywood"
+date: "11/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("airway")
+```
+
+```{r}
+dir <- system.file("extdata", package = "airway", mustWork = TRUE)
+list.files(dir)
+list.files(file.path(dir, "quants"))
+```
+
+```{r}
+csvfile <- file.path(dir, "sample_table.csv")
+coldata <- read.csv(csvfile, row.names=1, stringsAsFactors=FALSE)
+coldata
+```
+
+```{r}
+coldata <- coldata[1:2,]
+coldata$names <- coldata$Run
+coldata$files <- file.path(dir, "quants", coldata$names, "quant.sf.gz")
+file.exists(coldata$files)
+```
+
+```{r}
+library("tximeta")
+```
+
+```{r}
+se <- tximeta(coldata)
+```
+
+```{r}
+dim(se)
+head(rownames(se))
+```
+
+```{r}
+gse <- summarizeToGene(se)
+```
+
+```{r}
+dim(gse)
+head(rownames(gse))
+```
+
+```{r}
+data(gse)
+gse
+```
+
+```{r}
+assayNames(gse)
+head(assay(gse), 3)
+```
+
+```{r}
+colSums(assay(gse))
+rowRanges(gse)
+```
+
+```{r}
+seqinfo(rowRanges(gse))
+colData(gse)
+```
+
+```{r}
+gse$donor
+gse$condition
+```
+
+```{r}
+gse$cell <- gse$donor
+gse$dex <- gse$condition
+```
+
+```{r}
+levels(gse$dex)
+```
+
+```{r}
+levels(gse$dex) <- c("untrt", "trt")
+```
+
+```{r}
+library("magrittr")
+gse$dex %<>% relevel("untrt")
+gse$dex
+```
+
+```{r}
+round( colSums(assay(gse)) / 1e6, 1 )
+```
+
+```{r}
+library(DESeq2)
+dds <- DESeqDataSet(gse, design = ~ cell + dex)
+```
+
+```{r}
+countdata <- round(assays(gse)[["counts"]])
+head(countdata, 3)
+```
+
+```{r}
+coldata <- colData(gse)
+
+ddsMat <- DESeqDataSetFromMatrix(countData = countdata, colData = coldata, design = ~ cell + dex)
+```
+
+```{r}
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+keep <- rowSums(counts(dds) >= 10) >= 3
+```
+
+```{r}
+lambda <- 10^seq(from = -1, to = 2, length = 1000)
+cts <- matrix(rpois(1000*100, lambda), ncol = 100)
+library("vsn")
+meanSdPlot(cts, ranks = FALSE)
+```
+
+```{r}
+log.cts.one <- log2(cts + 1)
+meanSdPlot(log.cts.one, ranks = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

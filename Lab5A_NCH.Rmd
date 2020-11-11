@@ -1,0 +1,320 @@
+---
+title: "Lab5A"
+author: "Nathan Haywood"
+date: "9/21/2020"
+output: html_document
+bibliography: bibliography2.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+library(DT)
+library(plotly)
+```
+
+```{r}
+usConfirmed_03_13 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/03-13-2020.csv")) %>%
+  rename(Country_Region = "Country/Region", Province_State = "Province/State") %>% 
+  filter (Country_Region == "US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed)) 
+
+usConfirmed_09_13 <-   read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/09-13-2020.csv")) %>% 
+  filter (Country_Region == "US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed)) 
+```
+
+```{r}
+setdiff(usConfirmed_09_13$Province_State, usConfirmed_03_13$Province_State)
+```
+
+```{r}
+usConfirmed_09_13 <- usConfirmed_09_13 %>% 
+  filter(Province_State != "Recovered") 
+```
+
+```{r}
+usJoinedConfirmed <- full_join(usConfirmed_03_13, usConfirmed_09_13, by = c("Province_State")) %>%
+  select("Province_State", "Confirmed.x", "Confirmed.y") %>%
+  rename(confirmed_03_13 = "Confirmed.x", confirmed_09_13 = "Confirmed.y") %>%
+  replace_na(list(confirmed_03_13 = 0))
+```
+
+```{r}
+usJoinedConfirmedLong <- usJoinedConfirmed %>%
+  pivot_longer(-c(Province_State), names_to = "Date", values_to = "Confirmed")
+
+long_plot <- ggplot(usJoinedConfirmedLong, aes(x = Confirmed,  y = Province_State)) +
+  geom_point(aes(color = Date))
+
+long_plot
+```
+
+```{r}
+tsLongConfirmed <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")) %>%
+  rename(Province_State = "Province/State", Country_Region = "Country/Region") %>%
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long), names_to = "Date", values_to = "Confirmed") 
+
+tsLongDeaths <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")) %>%
+  rename(Province_State = "Province/State", Country_Region = "Country/Region") %>%
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long), names_to = "Date", values_to = "Deaths")
+```
+
+```{r}
+tsLongConfirmed <- tsLongConfirmed %>% 
+  unite(Key, Province_State, Country_Region, Date, sep = ".", remove = FALSE)
+
+tsLongDeaths_temp <- tsLongDeaths %>% 
+  unite(Key, Province_State, Country_Region, Date, sep = ".", remove = FALSE) %>%
+  select("Key", "Deaths")
+
+tsLongUnited <- full_join(tsLongConfirmed, tsLongDeaths_temp, by = c("Key")) %>% 
+  select(-Key)
+```
+
+```{r}
+tsLongUnited$Date <- mdy(tsLongUnited$Date)
+```
+
+```{r}
+tsLongUnitedCounts <- tsLongUnited %>% 
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long, Date),
+               names_to = "Report_Type", values_to = "Counts")
+```
+
+```{r}
+tsLongUnited %>% 
+  group_by(Country_Region,Date) %>% 
+  summarise_at(c("Confirmed", "Deaths"), sum) %>% 
+  filter (Country_Region == "US") %>% 
+    ggplot(aes(x = Date,  y = Deaths)) + 
+    geom_point() +
+    geom_line() +
+    ggtitle("US COVID-19 Deaths")
+```
+
+```{r}
+tsLongUnited %>% 
+  group_by(Country_Region,Date) %>% 
+  summarise_at(c("Confirmed", "Deaths"), sum) %>% 
+  filter (Country_Region %in% c("China","Japan", "Korea, South", "Italy","Spain", "US")) %>% 
+    ggplot(aes(x = Date,  y = Deaths)) + 
+    geom_point() +
+    geom_line() +
+    ggtitle("COVID-19 Deaths") +
+    facet_wrap(~Country_Region, ncol=2, scales="free_y")
+```
+
+```{r}
+tsLongUnited %>% 
+    group_by(Country_Region,Date) %>% 
+    summarise_at(c("Confirmed", "Deaths"), sum) %>% 
+    filter (Country_Region %in% c("China","France","Italy", "Korea, South", "US")) %>% 
+    ggplot(aes(x = Date,  y = Deaths, color = Country_Region)) + 
+    geom_point() +
+    geom_line() +
+    ggtitle("COVID-19 Deaths")
+```
+
+```{r}
+tsLongUnitedCounts %>% 
+  group_by(Country_Region, Report_Type, Date) %>% 
+  summarise(Counts = sum(Counts)) %>% 
+  filter (Country_Region == "US") %>% 
+    ggplot(aes(x = Date,  y = log2(Counts), fill = Report_Type, color = Report_Type)) + 
+    geom_point() +
+    geom_line() +
+    ggtitle("US COVID-19 Cases")
+```
+
+```{r}
+usConfirmed_04_13 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/04-13-2020.csv")) %>%
+  filter (Country_Region == "US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed)) %>%
+  filter(Province_State != "Recovered")
+
+usConfirmed_05_13 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/05-13-2020.csv")) %>%
+  filter (Country_Region == "US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed)) %>%
+  filter(Province_State != "Recovered")
+
+usConfirmed_06_13 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/06-13-2020.csv")) %>%
+  filter (Country_Region == "US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed)) %>%
+  filter(Province_State != "Recovered") 
+
+usConfirmed_07_13 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/06-13-2020.csv")) %>%
+  filter (Country_Region == "US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed)) %>%
+  filter(Province_State != "Recovered")
+
+usConfirmed_08_13 <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/06-13-2020.csv")) %>%
+  filter (Country_Region == "US") %>% 
+  group_by(Province_State, Country_Region) %>% 
+  summarise(Confirmed = sum(Confirmed)) %>%
+  filter(Province_State != "Recovered")
+```
+
+```{r}
+usJoinedConfirmed <- full_join(usJoinedConfirmed, usConfirmed_04_13, by = c("Province_State")) %>%
+  rename(confirmed_04_13 = "Confirmed") %>%
+  select(-Country_Region)
+```
+
+```{r}
+usJoinedConfirmed <- full_join(usJoinedConfirmed, usConfirmed_05_13, by = c("Province_State")) %>%
+  rename(confirmed_05_13 = "Confirmed") %>%
+  select(-Country_Region)
+```
+
+```{r}
+usJoinedConfirmed <- full_join(usJoinedConfirmed, usConfirmed_06_13, by = c("Province_State")) %>%
+  rename(confirmed_06_13 = "Confirmed") %>%
+  select(-Country_Region)
+```
+
+```{r}
+usJoinedConfirmed <- full_join(usJoinedConfirmed, usConfirmed_07_13, by = c("Province_State")) %>%
+  rename(confirmed_07_13 = "Confirmed") %>%
+  select(-Country_Region)
+```
+
+```{r}
+usJoinedConfirmed <- full_join(usJoinedConfirmed, usConfirmed_08_13, by = c("Province_State")) %>%
+  rename(confirmed_08_13 = "Confirmed") %>%
+  select(-Country_Region)
+```
+
+```{r}
+usJoinedConfirmedLongMonths <- usJoinedConfirmed %>%
+  pivot_longer(-c(Province_State), names_to = "Date", values_to = "Confirmed") %>%
+  arrange(desc(Province_State))
+
+state_monthly_plot <- ggplot(usJoinedConfirmedLongMonths, aes(x = Confirmed,  y = Province_State)) +
+  geom_point(aes(color = Date)) + ggtitle("Monthly Confirmed State Cases of Mar 13th - Sept 13th ") + xlab("Number of Confirmed Cases") + ylab("States")
+
+state_monthly_plot
+```
+
+```{r}
+tsLongDeaths$Date <- mdy(tsLongDeaths$Date)
+```
+
+```{r}
+rtsLongDeaths <- tsLongDeaths %>%
+  group_by(Date) %>%
+  summarise(Deaths = sum(Deaths)) %>%
+  arrange(Date) %>%
+  ggplot(aes(x = Date, y = Deaths)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Daily Worldwide Death Growth")
+
+rtsLongDeaths
+```
+
+```{r}
+tsLongUnited2 <- tsLongUnited %>%
+  mutate(ratio = Deaths/Confirmed)
+```
+
+```{r}
+usDeathsRatio <- tsLongUnited2 %>%
+  filter(Country_Region == "US") %>%
+  filter(!is.na(ratio)) %>%
+  ggplot(aes(x = Date, y = ratio)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Daily Death to Cases Ratio in the US")
+
+usDeathsRatio
+```
+
+```{r}
+countryDeaths <- tsLongDeaths %>%
+  group_by(Country_Region) %>%
+  summarise(Deaths = sum(Deaths)) %>%
+  arrange(desc(Deaths)) %>%
+  slice(1:10)
+
+countryDeaths
+```
+
+
+```{r}
+mostDeathsTT <- tsLongUnited %>%
+  filter(Country_Region %in% countryDeaths$Country_Region) %>%
+  group_by(Date, Country_Region) %>%
+  summarise_at("Deaths", sum) %>% 
+  ggplot(aes(x = Date, y = Deaths, color = Country_Region)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("10 Nations with Highest Death Rates")
+
+mostDeathsTT
+```
+
+```{r}
+mostDeathsTTF <- tsLongUnited %>%
+  filter(Country_Region %in% countryDeaths$Country_Region) %>%
+  group_by(Date, Country_Region) %>%
+  summarise_at("Deaths", sum) %>% 
+  ggplot(aes(x = Date, y = Deaths, color = Country_Region)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("10 Nations with Highest Death Rates") +
+  facet_wrap(~Country_Region, ncol=2, scales="free_y")
+
+mostDeathsTTF
+```
+
+```{r}
+tsLongConfirmedUS <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")) %>%
+  select(-c("UID", "iso2", "iso3", "code3",  "FIPS", "Admin2")) %>%
+  pivot_longer(-c("Country_Region", "Lat", "Long_", "Combined_Key", "Province_State"), names_to = "Date", values_to = "Confirmed") %>%
+  filter(Province_State != "Recovered")
+```
+
+```{r}
+tsLongConfirmedUS$Date <- mdy(tsLongConfirmedUS$Date)
+```
+
+```{r}
+tsLongConfirmedUS <- tsLongConfirmedUS %>%
+  group_by(Province_State, Date) %>%
+  summarise_at("Confirmed", sum)
+```
+
+```{r, fig.height = 20, fig.width = 20}
+ggplot(tsLongConfirmedUS, aes(x= Date, y = Confirmed, color = Province_State)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Case Rates in the US States") +
+  facet_wrap(~Province_State, ncol=5, scales="free_y")
+```
+
+```{r}
+mostDeathsTTF + theme_dark()
+```
+
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
+
+# REFERENCES
+
+
+
+
+
+
+

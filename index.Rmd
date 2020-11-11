@@ -21,4 +21,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 *[Lab4](Lab4_NCH.html)
 
-Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
+*[Lab5A](Lab5A_NCH.html)
+
+*[Lab5B](Lab5B_NCH.html)
+
+*[Lab6A](Lab6A_NCH.html)
+
+*[Lab6 Report](Lab6Report.html)
+
+*[Lab6B](Lab6B_NCH.html)
