@@ -1,0 +1,287 @@
+---
+title: "Lab 11 B"
+author: "Nathan Haywood"
+date: "12/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(phyloseq)
+library(ggplot2)
+library(plyr)
+library(dplyr)
+```
+
+## Ordination
+```{r}
+theme_set(theme_bw())
+```
+
+```{r}
+data("GlobalPatterns")
+```
+
+```{r}
+GP = GlobalPatterns
+wh0 = genefilter_sample(GP, filterfun_sample(function(x) x > 5), A=0.5*nsamples(GP))
+GP1 = prune_taxa(wh0, GP)
+```
+
+```{r}
+GP1 = transform_sample_counts(GP1, function(x) 1E6 * x/sum(x))
+```
+
+```{r}
+phylum.sum = tapply(taxa_sums(GP1), tax_table(GP1)[, "Phylum"], sum, na.rm=TRUE)
+top5phyla = names(sort(phylum.sum, TRUE))[1:5]
+GP1 = prune_taxa((tax_table(GP1)[, "Phylum"] %in% top5phyla), GP1)
+```
+
+```{r}
+human = get_variable(GP1, "SampleType") %in% c("Feces", "Mock", "Skin", "Tongue")
+sample_data(GP1)$human <- factor(human)
+```
+
+```{r}
+GP.ord <- ordinate(GP1, "NMDS", "bray")
+p1 = plot_ordination(GP1, GP.ord, type="taxa", color="Phylum", title="taxa")
+print(p1)
+```
+
+```{r}
+p1 + facet_wrap(~Phylum, 3)
+```
+
+```{r}
+p2 = plot_ordination(GP1, GP.ord, type="samples", color="SampleType", shape="human")
+p2 + geom_polygon(aes(fill=SampleType)) + geom_point(size=5) + ggtitle("samples")
+```
+
+```{r}
+p3 = plot_ordination(GP1, GP.ord, type="biplot", color="SampleType", shape="Phylum", title="biplot")
+
+GP1.shape.names = get_taxa_unique(GP1, "Phylum")
+GP1.shape <- 15:(15 + length(GP1.shape.names) - 1)
+names(GP1.shape) <- GP1.shape.names
+GP1.shape["samples"] <- 16
+p3 + scale_shape_manual(values=GP1.shape)
+```
+
+```{r}
+p4 = plot_ordination(GP1, GP.ord, type="split", color="Phylum", shape="human", label="SampleType", title="split") 
+p4
+```
+
+```{r}
+gg_color_hue <- function(n){
+    hues = seq(15, 375, length=n+1)
+    hcl(h=hues, l=65, c=100)[1:n]
+}
+color.names <- levels(p4$data$Phylum)
+p4cols <- gg_color_hue(length(color.names))
+names(p4cols) <- color.names
+p4cols["samples"] <- "black"
+p4 + scale_color_manual(values=p4cols)
+```
+
+```{r}
+dist = "bray"
+ord_meths = c("DCA", "CCA", "RDA", "DPCoA", "NMDS", "MDS", "PCoA")
+plist = llply(as.list(ord_meths), function(i, physeq, dist){
+        ordi = ordinate(physeq, method=i, distance=dist)
+        plot_ordination(physeq, ordi, "samples", color="SampleType")
+}, GP1, dist)
+```
+
+```{r}
+names(plist) <- ord_meths
+```
+
+```{r}
+pdataframe = ldply(plist, function(x){
+    df = x$data[, 1:2]
+    colnames(df) = c("Axis_1", "Axis_2")
+    return(cbind(df, x$data))
+})
+names(pdataframe)[1] = "method"
+```
+
+```{r}
+p = ggplot(pdataframe, aes(Axis_1, Axis_2, color=SampleType, shape=human, fill=SampleType)) + geom_point(size=4) + geom_polygon() + facet_wrap(~method, scales="free") + scale_fill_brewer(type="qual", palette="Set1") + scale_colour_brewer(type="qual", palette="Set1")
+p
+```
+
+```{r}
+plist[[2]]
+```
+
+```{r}
+p = plist[[2]] + scale_colour_brewer(type="qual", palette="Set1") + scale_fill_brewer(type="qual", palette="Set1") + geom_point(size=5) + geom_polygon(aes(fill=SampleType))
+p
+```
+
+```{r}
+ordu = ordinate(GP1, "PCoA", "unifrac", weighted=TRUE)
+plot_ordination(GP1, ordu, color="SampleType", shape="human")
+```
+
+```{r}
+p = plot_ordination(GP1, ordu, color="SampleType", shape="human") + geom_point(size=7, alpha=0.75) + scale_colour_brewer(type="qual", palette="Set1") + ggtitle("MDS/PCoA on weighted-UniFrac distance, GlobalPatterns")
+p
+```
+
+## Alpha Diversity
+```{r}
+pal = "Set1"
+scale_colour_discrete <-  function(palname=pal, ...){
+  scale_colour_brewer(palette=palname, ...)
+}
+scale_fill_discrete <-  function(palname=pal, ...){
+  scale_fill_brewer(palette=palname, ...)
+}
+```
+
+```{r}
+GP <- prune_species(speciesSums(GlobalPatterns) > 0, GlobalPatterns)
+```
+
+```{r}
+plot_richness(GP)
+plot_richness(GP, measures=c("Chao1", "Shannon"))
+plot_richness(GP, x = "SampleType", measures=c("Chao1", "Shannon"))
+```
+
+```{r}
+sampleData(GP)$human <- getVariable(GP, "SampleType") %in% c("Feces", "Mock", "Skin", "Tongue")
+```
+
+```{r}
+plot_richness(GP, x="human", color="SampleType", measures=c("Chao1", "Shannon"))
+```
+
+```{r}
+GPst = merge_samples(GP, "SampleType")
+
+sample_data(GPst)$SampleType <- factor(sample_names(GPst))
+sample_data(GPst)$human <- as.logical(sample_data(GPst)$human)
+```
+
+```{r}
+p = plot_richness(GPst, x="human", color="SampleType", measures=c("Chao1", "Shannon")) + geom_point(size=5, alpha=0.7)
+p
+```
+
+```{r}
+p$layers
+p$layers <- p$layers[-1]
+p + geom_point(size=5, alpha=0.7)
+```
+
+## Heatmaps
+```{r}
+gpt <- subset_taxa(GlobalPatterns, Kingdom=="Bacteria")
+gpt <- prune_taxa(names(sort(taxa_sums(gpt),TRUE)[1:300]), gpt)
+plot_heatmap(gpt, sample.label="SampleType")
+```
+
+```{r}
+gpac <- subset_taxa(GlobalPatterns, Phylum=="Crenarchaeota")
+plot_heatmap(gpac)
+
+(p <- plot_heatmap(gpac, "NMDS", "bray", "SampleType", "Family"))
+```
+
+```{r}
+p$scales$scales[[1]]$name <- "My X-Axis"
+p$scales$scales[[2]]$name <- "My Y-Axis"
+print(p)
+```
+
+```{r}
+plot_heatmap(gpac, "NMDS", "bray", "SampleType", "Family", low="#000033", high="#CCFF66")
+plot_heatmap(gpac, "NMDS", "bray", "SampleType", "Family", low="#000033", high="#FF3300")
+plot_heatmap(gpac, "NMDS", "bray", "SampleType", "Family", low="#000033", high="#66CCFF")
+```
+
+```{r}
+plot_heatmap(gpac, "NMDS", "bray", "SampleType", "Family", low="#66CCFF", high="#000033", na.value="white")
+plot_heatmap(gpac, "NMDS", "bray", "SampleType", "Family", low="#FFFFCC", high="#000033", na.value="white")
+```
+
+```{r}
+plot_heatmap(gpac, "NMDS", "jaccard")
+
+plot_heatmap(gpac, "DCA", "none", "SampleType", "Family")
+plot_heatmap(gpac, "RDA", "none", "SampleType", "Family")
+plot_heatmap(gpac, "PCoA", "bray", "SampleType", "Family")
+plot_heatmap(gpac, "PCoA", "unifrac", "SampleType", "Family")
+
+plot_heatmap(gpac, "MDS", "unifrac", "SampleType", "Family", weighted=TRUE)
+
+heatmap(otu_table(gpac))
+```
+
+## Network Analysis
+```{r}
+data("enterotype")
+set.seed(711L)
+enterotype = subset_samples(enterotype, !is.na(Enterotype))
+```
+
+```{r}
+plot_net(enterotype, maxdist = 0.4, point_label = "Sample_ID")
+```
+
+```{r}
+plot_net(enterotype, maxdist = 0.3, color = "SeqTech", shape="Enterotype")
+```
+
+```{r}
+ig <- make_network(enterotype, max.dist=0.3)
+plot_network(ig, enterotype)
+```
+
+```{r}
+plot_network(ig, enterotype, color="SeqTech", shape="Enterotype", line_weight=0.4, label=NULL)
+```
+
+```{r}
+ig <- make_network(enterotype, max.dist=0.2)
+plot_network(ig, enterotype, color="SeqTech", shape="Enterotype", line_weight=0.4, label=NULL)
+```
+
+```{r}
+ig <- make_network(enterotype, dist.fun="bray", max.dist=0.3)
+plot_network(ig, enterotype, color="SeqTech", shape="Enterotype", line_weight=0.4, label=NULL)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,186 @@
+---
+title: "Lab 9 B"
+author: "Nathan Haywood"
+date: "12/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+x <- 4
+
+if(x > 3){
+  print("greater than")
+}
+```
+
+```{r}
+if(x > 2){
+  print("greater than")
+} else {
+  print("less than")
+}
+```
+
+```{r}
+if(x < 4){
+  print("greater than")
+} else if(x > 4) {
+  print("less than")
+} else {
+  print("equal to")
+}
+```
+
+```{r}
+x <- runif(1, 0, 100)  
+if(x > 30) {
+        y <- "Hello"
+} else {
+        y <- "World"
+}
+
+y
+```
+
+```{r}
+for(i in 1:10) {
+        print(10-i)
+}
+```
+
+```{r}
+x <- c("apple", "banana", "coffee", "duck")
+for(i in 1:4) {
+        print(x[i])  
+}
+```
+
+```{r}
+for(i in seq_along(x)) {   
+        print(x[i])
+}
+```
+
+```{r}
+for(letter in x) {
+        print(letter)
+}
+```
+
+```{r}
+for(i in 1:4) print(x[i])
+```
+
+```{r}
+x <- matrix(1:12, 4, 3)
+for(i in seq_len(nrow(x))) {
+        for(j in seq_len(ncol(x))) {
+                print(x[i, j])
+        }   
+}
+```
+
+```{r}
+countdown <- 100
+
+while(countdown >= 0){
+  print(countdown)
+  if(countdown == 0){
+    print("stop")
+  }
+  else if(countdown %% 10 == 0) {
+    print("continue")
+  }
+  countdown <- countdown - 10
+}
+```
+
+```{r}
+z <- 5
+set.seed(1)
+while(z >= 3 && z <= 10) {
+        coin <- rbinom(1, 1, 0.5)
+        
+        if(coin == 1) {
+                z <- z + 1
+        } else {
+                z <- z - 1
+        } 
+}
+print(z)
+```
+
+```{r}
+f <- function(num) {
+        hello <- "Hello, world!\n"
+        for(i in seq_len(num)) {
+                cat(hello)
+        }
+        chars <- nchar(hello) * num
+        chars
+}
+meaningoflife <- f(3)
+
+print(meaningoflife)
+```
+
+```{r}
+f <- function(num = 1) {
+        hello <- "Hello, world!\n"
+        for(i in seq_len(num)) {
+                cat(hello)
+        }
+        chars <- nchar(hello) * num
+        chars
+}
+f()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
