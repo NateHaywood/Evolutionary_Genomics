@@ -30,3 +30,20 @@ knitr::opts_chunk$set(echo = TRUE)
 *[Lab6 Report](Lab6Report.html)
 
 *[Lab6B](Lab6B_NCH.html)
+
+*[Lab7A](Lab7A_NCH.html)
+
+*[Lab8A](Lab8A_NCH.html)
+
+*[Lab9A](Lab9A_NCH.html)
+
+*[Lab9B](Lab9B_NCH.html)
+
+*[Lab10A](Lab10A_NCH.html)
+
+*[Lab11A](Lab11A_NCH.html)
+
+*[Lab11B](Lab11B_NCH.html)
+
+*[Lab12A](Lab12A_NCH.html)
+
